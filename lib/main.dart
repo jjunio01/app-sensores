@@ -8,7 +8,7 @@ import 'package:torch_light/torch_light.dart';
 import 'package:vibration/vibration.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity),
-      home: MyHomePage(),
+      home: const MyHomePage(),
     );
   }
 }
@@ -33,7 +33,21 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool isOn = false;
+  bool _isOn = false;
+  bool _isNear = false;
+  late StreamSubscription<dynamic> _streamSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _near();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _streamSubscription.cancel();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,11 +58,17 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             ElevatedButton(
               onPressed: _torchLight,
-              child: const Text('Turn on/off light'),
+              child: const Text('Kameramera on/off'),
             ),
             ElevatedButton(
               onPressed: _vibrate,
-              child: const Text('Vibrate'),
+              child: const Text('Super Saiyajin'),
+            ),
+            Center(
+              child: Text('Goku está perto ?  $_isNear\n'),
+            ),
+            const Center(
+              child: Image(image: AssetImage('images/transformacao.gif')),
             )
             //Text('Está próximo do sensor: $isNear')
           ],
@@ -58,24 +78,32 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _torchLight() async {
-    if (!isOn) {
-      isOn = true;
+    if (!_isOn) {
+      _isOn = true;
       try {
         await TorchLight.disableTorch();
       } on Exception catch (_) {
-        print('error disabling torch light');
+        debugPrint('error disabling torch light');
       }
     } else {
-      isOn = false;
+      _isOn = false;
       try {
         await TorchLight.enableTorch();
       } on Exception catch (_) {
-        print('error enabling torch light');
+        debugPrint('error enabling torch light');
       }
     }
   }
 
   Future<void> _vibrate() async {
     Vibration.vibrate(duration: 1000, amplitude: 128);
+  }
+
+  Future<void> _near() async {
+    _streamSubscription = ProximitySensor.events.listen((int event) {
+      setState(() {
+        _isNear = (event > 0) ? true : false;
+      });
+    });
   }
 }
