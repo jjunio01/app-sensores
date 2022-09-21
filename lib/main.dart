@@ -35,6 +35,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   bool _isOn = false;
   bool _isNear = false;
+  String img = '0';
   late StreamSubscription<dynamic> _streamSubscription;
 
   @override
@@ -65,10 +66,10 @@ class _MyHomePageState extends State<MyHomePage> {
               child: const Text('Super Saiyajin'),
             ),
             Center(
-              child: Text('Goku está perto ?  $_isNear\n'),
+              child: Text('Gohan está perto ?  $_isNear\n'),
             ),
-            const Center(
-              child: Image(image: AssetImage('images/transformacao.gif')),
+            Center(
+              child: _carregaImagem(img),
             )
             //Text('Está próximo do sensor: $isNear')
           ],
@@ -95,14 +96,36 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  Widget _carregaImagem(String tipo) {
+    if (tipo == '1') {
+      return const Image(image: AssetImage('images/gohan.jpg'));
+    } else if (tipo == '2') {
+      return const Image(image: AssetImage('images/transformacao.gif'));
+    } else if (tipo == '3') {
+      return const Image(image: AssetImage('images/transformacaoGohan.jpg'));
+    } else if (tipo == '4') {
+      return const Image(image: AssetImage('images/cel.jpg'));
+    }
+    return const Text("Dragon Ball");
+  }
+
   Future<void> _vibrate() async {
-    Vibration.vibrate(duration: 1000, amplitude: 128);
+    Vibration.vibrate(duration: 1500, amplitude: 128);
   }
 
   Future<void> _near() async {
     _streamSubscription = ProximitySensor.events.listen((int event) {
       setState(() {
         _isNear = (event > 0) ? true : false;
+        if (_isNear) {
+          img = '3';
+          _vibrate();
+          _torchLight();
+        } else {
+          img = '4';
+          _isOn = false;
+          _torchLight();
+        }
       });
     });
   }
